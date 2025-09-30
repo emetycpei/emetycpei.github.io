@@ -3,31 +3,31 @@ const scene = new THREE.Scene();
 
 // Camera
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.z = 3; // Adjust camera position for a closer view of the mirror
+camera.position.z = 3; 
 
 // Renderer
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
-renderer.setClearColor(0x222222); // Dark grey background as fallback if env map fails
+renderer.setClearColor(0x222222); 
 
-// --- 2. Add Lighting ---
-// Crucial for reflections and showing off materials
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.8); // Brighter ambient light
+// --- 2. Add Lighting (Increased Intensity) ---
+// Increased intensity to ensure the reflective material is active
+const ambientLight = new THREE.AmbientLight(0xffffff, 1.5); 
 scene.add(ambientLight);
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
-directionalLight.position.set(0, 10, 5).normalize();
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+directionalLight.position.set(0, 5, 5).normalize();
 scene.add(directionalLight);
 
-const pointLight = new THREE.PointLight(0xffffff, 0.5, 50); // Softer point light
+const pointLight = new THREE.PointLight(0xffffff, 1, 50); 
 pointLight.position.set(-3, 3, 3);
 scene.add(pointLight);
 
-// --- 3. Create the Retail Changing Room Environment ---
+// --- 3. Create the Environment Map (Retail/Indoor Look) ---
 const cubeTextureLoader = new THREE.CubeTextureLoader();
-// Using a retail interior like 'Park' from Three.js examples
-// This gives a nice indoor, somewhat generic mall/store feel.
+// Using 'Park' which is a large interior/exterior space that works well for reflections
+// NOTE: Your image shows this loading correctly, but the mirror material isn't
 cubeTextureLoader.setPath('https://threejs.org/examples/textures/cube/Park2/'); 
 
 const environmentMap = cubeTextureLoader.load([
@@ -36,51 +36,42 @@ const environmentMap = cubeTextureLoader.load([
     'posz.jpg', 'negz.jpg'
 ]);
 
-scene.background = environmentMap; // Set the environment as the scene background for visual context
+scene.background = environmentMap;
 
 // --- 4. Create the 3D Mirror Object with two distinct sides ---
-// We'll create two separate meshes, one for the front and one for the back,
-// as PlaneGeometry by default renders both sides with the same material.
-// This gives us full control over each face.
-
-// Dimensions of the mirror
 const mirrorWidth = 2.5;
 const mirrorHeight = 4;
-const mirrorThickness = 0.1; // For the frame
+const mirrorThickness = 0.1;
 
-// Geometry for the mirror surface (front and back)
+// Geometry for the mirror surface
 const planeGeometry = new THREE.PlaneGeometry(mirrorWidth, mirrorHeight);
 
-// Material for the reflective front side
+// Material for the REFLECTIVE FRONT SIDE (FORCED MIRROR LOOK)
 const reflectiveMaterial = new THREE.MeshStandardMaterial({
-    color: 0xffffff, // White base color for maximum reflection
-    roughness: 0.05, // Very low roughness for clear reflections
-    metalness: 0.9,  // High metalness makes it mirror-like
-    envMap: environmentMap, // This makes it reflect the environment
-    side: THREE.FrontSide // Explicitly render only the front face
+    color: 0xffffff, // White base color
+    roughness: 0.0,  // CRITICAL: Set to 0.0 for PERFECT MIRROR reflection
+    metalness: 1.0,  // CRITICAL: Set to 1.0 for metallic/mirror look
+    envMap: environmentMap, 
+    side: THREE.FrontSide 
 });
 
-// Material for the royal purple non-reflective back side
+// Material for the ROYAL PURPLE NON-REFLECTIVE BACK SIDE
 const purpleMaterial = new THREE.MeshBasicMaterial({
     color: 0x6A0DAD, // Royal Purple
-    side: THREE.BackSide // Explicitly render only the back face
+    side: THREE.BackSide
 });
 
 // Create the front mirror mesh
 const frontMirror = new THREE.Mesh(planeGeometry, reflectiveMaterial);
-// We might need to rotate it if the default plane faces Z-axis and we want it to face the camera
-frontMirror.rotation.y = Math.PI; // Rotate 180 degrees if needed, so the front is visible (adjust as you test)
-// For PlaneGeometry, default normal is +Z. If camera is at +Z, it faces away.
-// So we apply it to the front of the combined object later.
 
 // Create the back purple plane mesh
 const backPurple = new THREE.Mesh(planeGeometry, purpleMaterial);
-
+backPurple.rotation.y = Math.PI; // Ensure the purple side is facing away
 
 // A simple frame for the mirror
-const frameGeometry = new THREE.BoxGeometry(mirrorWidth + 0.2, mirrorHeight + 0.2, mirrorThickness); // Slightly larger
+const frameGeometry = new THREE.BoxGeometry(mirrorWidth + 0.2, mirrorHeight + 0.2, mirrorThickness);
 const frameMaterial = new THREE.MeshStandardMaterial({
-    color: 0x808080, // Dark grey for the frame
+    color: 0x808080, 
     roughness: 0.6,
     metalness: 0.2
 });
@@ -94,9 +85,8 @@ mirrorGroup.add(frame);
 scene.add(mirrorGroup);
 
 // Position the individual planes within the group
-frontMirror.position.z = mirrorThickness / 2; // Front face of the group
-backPurple.position.z = -mirrorThickness / 2; // Back face of the group (needs to be rotated to show purple)
-backPurple.rotation.y = Math.PI; // Rotate the back plane so its purple side faces 'backwards' from the group's perspective.
+frontMirror.position.z = mirrorThickness / 2;
+backPurple.position.z = -mirrorThickness / 2;
 
 
 // --- 5. Animation Loop ---
