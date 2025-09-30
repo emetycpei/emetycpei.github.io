@@ -3,43 +3,39 @@ const scene = new THREE.Scene();
 
 // Camera
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.z = 3; 
+camera.position.z = 3.5; // Slightly further back to see the environment better
 
 // Renderer
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
-renderer.setClearColor(0x333333); // A slightly lighter dark grey for a generic indoor feel
+renderer.setClearColor(0x333333); 
 
-// --- 2. Add Lighting (Ensuring good visibility) ---
-const ambientLight = new THREE.AmbientLight(0xffffff, 1.8); // Brighter ambient
+// --- 2. Add Lighting (Ensuring good visibility for reflection) ---
+// Increased intensity to force the mirror to reflect brightly
+const ambientLight = new THREE.AmbientLight(0xffffff, 2.0); 
 scene.add(ambientLight);
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
 directionalLight.position.set(0, 5, 5).normalize();
 scene.add(directionalLight);
 
-const pointLight = new THREE.PointLight(0xffffff, 1, 50); 
-pointLight.position.set(-3, 3, 3);
-scene.add(pointLight);
-
-// --- 3. Create the Environment Map (LOCAL RETAIL-LIKE/INDOOR) ---
+// --- 3. Create the Environment Map (Using .jpeg extension) ---
 const cubeTextureLoader = new THREE.CubeTextureLoader();
-// !!! IMPORTANT: This path assumes you have a 'textures/' folder 
-// !!!          in your root directory containing the 6 cubemap images.
-cubeTextureLoader.setPath('./textures/'); // LOOKING FOR LOCAL FILES
+cubeTextureLoader.setPath('./textures/'); 
 
 const environmentMap = cubeTextureLoader.load([
-    'posx.jpeg', 'negx.jpeg',
-    'posy.jpeg', 'negy.jpeg',
-    'posz.jpeg', 'negz.jpeg'
-], () => {
-    // Callback function once textures are loaded
-    scene.background = environmentMap;
+    // UPDATED TO .jpeg EXTENSION
+    'posx.jpeg', 'negx.jpeg', 
+    'posy.jpeg', 'negy.jpeg', 
+    'posz.jpeg', 'negz.jpeg'  
+], (texture) => {
+    // SUCCESS: Sets the background once ALL 6 textures are loaded.
+    scene.background = texture;
+    console.log("Environment map loaded successfully.");
 }, undefined, (err) => {
-    // Error handling if textures fail to load (e.g., file not found)
-    console.error('Failed to load environment map textures:', err);
-    // Fallback: Use a solid color background if textures fail to load
+    // ERROR: Shows a solid color if the load fails (e.g., missing 3 files)
+    console.error('Failed to load environment map textures. Check the 6 files.', err);
     scene.background = new THREE.Color(0x666666); 
 });
 
@@ -50,24 +46,26 @@ const mirrorThickness = 0.1;
 
 const planeGeometry = new THREE.PlaneGeometry(mirrorWidth, mirrorHeight);
 
-// Material for the REFLECTIVE FRONT SIDE (Guaranteed Mirror Look)
+// Material for the REFLECTIVE FRONT SIDE (White/Mirror)
 const reflectiveMaterial = new THREE.MeshStandardMaterial({
     color: 0xffffff, 
     roughness: 0.0,  // Perfect reflection
     metalness: 1.0,  // Fully metallic/mirror
-    envMap: environmentMap, // Reflects the loaded environment
+    envMap: environmentMap, // This will be the key to fixing the reflection issue
     side: THREE.FrontSide 
 });
 
 // Material for the ROYAL PURPLE NON-REFLECTIVE BACK SIDE
 const purpleMaterial = new THREE.MeshBasicMaterial({
     color: 0x6A0DAD, // Royal Purple
-    side: THREE.BackSide
+    side: THREE.BackSide,
+    // Ensure the material is visible even without intense lighting
+    lights: false 
 });
 
 const frontMirror = new THREE.Mesh(planeGeometry, reflectiveMaterial);
 const backPurple = new THREE.Mesh(planeGeometry, purpleMaterial);
-backPurple.rotation.y = Math.PI; 
+backPurple.rotation.y = Math.PI; // Correctly rotates the purple side to face backward
 
 const frameGeometry = new THREE.BoxGeometry(mirrorWidth + 0.2, mirrorHeight + 0.2, mirrorThickness);
 const frameMaterial = new THREE.MeshStandardMaterial({
