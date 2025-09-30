@@ -30,9 +30,9 @@ const cubeTextureLoader = new THREE.CubeTextureLoader();
 cubeTextureLoader.setPath('./textures/'); // LOOKING FOR LOCAL FILES
 
 const environmentMap = cubeTextureLoader.load([
-    'posx.jepg', 'negx.jpg',
-    'posy.jpg', 'negy.jpg',
-    'posz.jpg', 'negz.jpg'
+    'posx.jpeg', 'negx.jpeg',
+    'posy.jpeg', 'negy.jpeg',
+    'posz.jpeg', 'negz.jpeg'
 ], () => {
     // Callback function once textures are loaded
     scene.background = environmentMap;
