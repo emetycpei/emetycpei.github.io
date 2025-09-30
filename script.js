@@ -9,14 +9,13 @@ camera.position.z = 3;
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
-renderer.setClearColor(0x222222); 
+renderer.setClearColor(0x333333); // A slightly lighter dark grey for a generic indoor feel
 
-// --- 2. Add Lighting (Increased Intensity) ---
-// Increased intensity to ensure the reflective material is active
-const ambientLight = new THREE.AmbientLight(0xffffff, 1.5); 
+// --- 2. Add Lighting (Ensuring good visibility) ---
+const ambientLight = new THREE.AmbientLight(0xffffff, 1.8); // Brighter ambient
 scene.add(ambientLight);
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
 directionalLight.position.set(0, 5, 5).normalize();
 scene.add(directionalLight);
 
@@ -24,34 +23,39 @@ const pointLight = new THREE.PointLight(0xffffff, 1, 50);
 pointLight.position.set(-3, 3, 3);
 scene.add(pointLight);
 
-// --- 3. Create the Environment Map (Retail/Indoor Look) ---
+// --- 3. Create the Environment Map (LOCAL RETAIL-LIKE/INDOOR) ---
 const cubeTextureLoader = new THREE.CubeTextureLoader();
-// Using 'Park' which is a large interior/exterior space that works well for reflections
-// NOTE: Your image shows this loading correctly, but the mirror material isn't
-cubeTextureLoader.setPath('https://threejs.org/examples/textures/cube/Park2/'); 
+// !!! IMPORTANT: This path assumes you have a 'textures/' folder 
+// !!!          in your root directory containing the 6 cubemap images.
+cubeTextureLoader.setPath('./textures/'); // LOOKING FOR LOCAL FILES
 
 const environmentMap = cubeTextureLoader.load([
-    'posx.jpg', 'negx.jpg',
+    'posx.jepg', 'negx.jpg',
     'posy.jpg', 'negy.jpg',
     'posz.jpg', 'negz.jpg'
-]);
-
-scene.background = environmentMap;
+], () => {
+    // Callback function once textures are loaded
+    scene.background = environmentMap;
+}, undefined, (err) => {
+    // Error handling if textures fail to load (e.g., file not found)
+    console.error('Failed to load environment map textures:', err);
+    // Fallback: Use a solid color background if textures fail to load
+    scene.background = new THREE.Color(0x666666); 
+});
 
 // --- 4. Create the 3D Mirror Object with two distinct sides ---
 const mirrorWidth = 2.5;
 const mirrorHeight = 4;
 const mirrorThickness = 0.1;
 
-// Geometry for the mirror surface
 const planeGeometry = new THREE.PlaneGeometry(mirrorWidth, mirrorHeight);
 
-// Material for the REFLECTIVE FRONT SIDE (FORCED MIRROR LOOK)
+// Material for the REFLECTIVE FRONT SIDE (Guaranteed Mirror Look)
 const reflectiveMaterial = new THREE.MeshStandardMaterial({
-    color: 0xffffff, // White base color
-    roughness: 0.0,  // CRITICAL: Set to 0.0 for PERFECT MIRROR reflection
-    metalness: 1.0,  // CRITICAL: Set to 1.0 for metallic/mirror look
-    envMap: environmentMap, 
+    color: 0xffffff, 
+    roughness: 0.0,  // Perfect reflection
+    metalness: 1.0,  // Fully metallic/mirror
+    envMap: environmentMap, // Reflects the loaded environment
     side: THREE.FrontSide 
 });
 
@@ -61,14 +65,10 @@ const purpleMaterial = new THREE.MeshBasicMaterial({
     side: THREE.BackSide
 });
 
-// Create the front mirror mesh
 const frontMirror = new THREE.Mesh(planeGeometry, reflectiveMaterial);
-
-// Create the back purple plane mesh
 const backPurple = new THREE.Mesh(planeGeometry, purpleMaterial);
-backPurple.rotation.y = Math.PI; // Ensure the purple side is facing away
+backPurple.rotation.y = Math.PI; 
 
-// A simple frame for the mirror
 const frameGeometry = new THREE.BoxGeometry(mirrorWidth + 0.2, mirrorHeight + 0.2, mirrorThickness);
 const frameMaterial = new THREE.MeshStandardMaterial({
     color: 0x808080, 
@@ -77,14 +77,12 @@ const frameMaterial = new THREE.MeshStandardMaterial({
 });
 const frame = new THREE.Mesh(frameGeometry, frameMaterial);
 
-// Group the mirror parts to make them rotate together
 const mirrorGroup = new THREE.Group();
 mirrorGroup.add(frontMirror);
 mirrorGroup.add(backPurple);
 mirrorGroup.add(frame);
 scene.add(mirrorGroup);
 
-// Position the individual planes within the group
 frontMirror.position.z = mirrorThickness / 2;
 backPurple.position.z = -mirrorThickness / 2;
 
@@ -93,10 +91,8 @@ backPurple.position.z = -mirrorThickness / 2;
 function animate() {
     requestAnimationFrame(animate);
 
-    // Rotate the entire mirror group
     mirrorGroup.rotation.y += 0.005; 
 
-    // Render the scene
     renderer.render(scene, camera);
 }
 
