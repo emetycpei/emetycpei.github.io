@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Programming Paradigm Match</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f0f1a; color: #e8e8f0; min-height: 100vh; padding: 2rem; }
+
+  h1 { text-align: center; font-size: 1.5rem; color: #a0a0c0; margin-bottom: 0.3rem; letter-spacing: 0.05em; text-transform: uppercase; }
+  .subtitle { text-align: center; color: #6060a0; font-size: 0.9rem; margin-bottom: 2rem; }
+
+  .match-card {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border: 2px solid #4a90d9;
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 680px;
+    margin: 0 auto 2rem auto;
+    box-shadow: 0 0 40px rgba(74,144,217,0.15);
+  }
+  .match-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+  .match-icon { font-size: 2.5rem; }
+  .match-title { font-size: 1.8rem; font-weight: 700; color: #4a90d9; }
+  .match-sub { font-size: 0.95rem; color: #8080b0; }
+  .match-score {
+    display: inline-block;
+    background: #4a90d9;
+    color: white;
+    padding: 0.2rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+  }
+  .match-desc { color: #c0c0e0; line-height: 1.7; margin-bottom: 1.2rem; }
+
+  .traits { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.2rem; }
+  .trait {
+    background: rgba(74,144,217,0.15);
+    border: 1px solid rgba(74,144,217,0.4);
+    border-radius: 20px;
+    padding: 0.3rem 0.85rem;
+    font-size: 0.82rem;
+    color: #90b8e8;
+  }
+
+  .section-title { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; color: #6060a0; margin-bottom: 0.6rem; }
+
+  .lang-pills { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; }
+  .lang-pill {
+    background: #1e2d1e;
+    border: 1px solid #3a6a3a;
+    border-radius: 8px;
+    padding: 0.35rem 0.8rem;
+    font-size: 0.85rem;
+    color: #80d080;
+    font-weight: 600;
+  }
+
+  /* Other paradigms */
+  .others-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    max-width: 680px;
+    margin: 0 auto 2rem auto;
+  }
+  .other-card {
+    background: #1a1a2e;
+    border: 1px solid #2a2a4a;
+    border-radius: 12px;
+    padding: 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .other-card:hover { border-color: #4a4a8a; transform: translateY(-2px); }
+  .other-card.expanded { border-color: #8060c0; }
+  .other-header { display: flex; justify-content: space-between; align-items: center; }
+  .other-name { font-weight: 600; font-size: 1rem; }
+  .other-fit { font-size: 0.75rem; padding: 0.15rem 0.5rem; border-radius: 10px; }
+  .fit-med { background: rgba(180,140,60,0.2); color: #d4a843; border: 1px solid rgba(180,140,60,0.3); }
+  .fit-low { background: rgba(140,80,80,0.2); color: #c07070; border: 1px solid rgba(140,80,80,0.3); }
+  .other-desc { font-size: 0.83rem; color: #8080a0; margin-top: 0.6rem; line-height: 1.5; display: none; }
+  .other-card.expanded .other-desc { display: block; }
+  .other-icon { font-size: 1.3rem; margin-bottom: 0.4rem; }
+
+  /* Example code */
+  .code-toggle {
+    background: transparent;
+    border: 1px solid #4a90d9;
+    color: #4a90d9;
+    padding: 0.4rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    margin-bottom: 1rem;
+  }
+  .code-toggle:hover { background: rgba(74,144,217,0.1); }
+  .code-block {
+    background: #0a0a18;
+    border: 1px solid #2a2a4a;
+    border-radius: 10px;
+    padding: 1rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    color: #c0d0e8;
+    display: none;
+    margin-bottom: 1rem;
+    white-space: pre;
+  }
+  .code-block.visible { display: block; }
+  .kw { color: #c792ea; }
+  .fn { color: #82aaff; }
+  .str { color: #c3e88d; }
+  .cm { color: #546e7a; font-style: italic; }
+  .num { color: #f78c6c; }
+
+  .tip-box {
+    background: rgba(74,144,217,0.08);
+    border-left: 3px solid #4a90d9;
+    padding: 0.8rem 1rem;
+    border-radius: 0 8px 8px 0;
+    font-size: 0.88rem;
+    color: #a0b8d8;
+    line-height: 1.6;
+  }
+
+  h2 { text-align: center; color: #6060a0; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; }
+</style>
+</head>
+<body>
+
+<h1>Your Paradigm Match</h1>
+<p class="subtitle">Based on your step-by-step thinking style</p>
+
+<div class="match-card">
+  <div class="match-score">⭐ Best Match</div>
+  <div class="match-header">
+    <div class="match-icon">📋</div>
+    <div>
+      <div class="match-title">Imperative / Procedural</div>
+      <div class="match-sub">Step-by-step, you're in control</div>
+    </div>
+  </div>
+
+  <p class="match-desc">
+    You think in <strong>ordered steps</strong> — do this, then that, then check this condition. Procedural programming is exactly that: you write a sequence of instructions the computer executes top-to-bottom. It maps directly to how you naturally break problems apart. You're the director; the code is the script.
+  </p>
+
+  <div class="section-title">Why it fits you</div>
+  <div class="traits">
+    <span class="trait">✅ You sequence naturally</span>
+    <span class="trait">✅ Clear cause-and-effect</span>
+    <span class="trait">✅ Easy to trace & debug</span>
+    <span class="trait">✅ Great for beginners</span>
+    <span class="trait">✅ Most languages support it</span>
+  </div>
+
+  <div class="section-title">Languages that feel natural</div>
+  <div class="lang-pills">
+    <span class="lang-pill">Python</span>
+    <span class="lang-pill">C</span>
+    <span class="lang-pill">JavaScript</span>
+    <span class="lang-pill">Go</span>
+    <span class="lang-pill">Bash</span>
+  </div>
+
+  <button class="code-toggle" onclick="toggleCode()">👁 See what this looks like in code</button>
+  <div class="code-block" id="codeBlock"><span class="cm"># Python — Procedural style</span>
+<span class="cm"># Make a cup of tea, step by step</span>
+
+<span class="kw">def</span> <span class="fn">boil_water</span>():
+    <span class="fn">print</span>(<span class="str">"Heating water to 100°C..."</span>)
+    <span class="kw">return</span> <span class="str">"boiled water"</span>
+
+<span class="kw">def</span> <span class="fn">steep_tea</span>(water, minutes):
+    <span class="fn">print</span>(<span class="str">f"Steeping tea for {minutes} minutes..."</span>)
+    <span class="kw">return</span> <span class="str">"brewed tea"</span>
+
+<span class="kw">def</span> <span class="fn">make_tea</span>():
+    water  = <span class="fn">boil_water</span>()       <span class="cm"># Step 1</span>
+    tea    = <span class="fn">steep_tea</span>(water, <span class="num">3</span>) <span class="cm"># Step 2</span>
+    <span class="fn">print</span>(<span class="str">"Tea is ready! ☕"</span>)    <span class="cm"># Step 3</span>
+
+<span class="fn">make_tea</span>()
+</div>
+
+  <div class="tip-box">
+    💡 <strong>Tip for you:</strong> Since you're neutral on "state & change," try Python first — it lets you stay procedural but gently introduces you to other paradigms as you grow. You won't hit a wall.
+  </div>
+</div>
+
+<h2>Other paradigms — click to explore</h2>
+<div class="others-grid">
+  <div class="other-card" onclick="this.classList.toggle('expanded')">
+    <div class="other-icon">🧩</div>
+    <div class="other-header">
+      <span class="other-name">Object-Oriented</span>
+      <span class="other-fit fit-med">Medium fit</span>
+    </div>
+    <div class="other-desc">You model the world as objects with properties and behaviors. Great for large apps. May feel abstract at first if you're very step-oriented. Languages: Java, Python, C#, Ruby.</div>
+  </div>
+  <div class="other-card" onclick="this.classList.toggle('expanded')">
+    <div class="other-icon">🔢</div>
+    <div class="other-header">
+      <span class="other-name">Functional</span>
+      <span class="other-fit fit-med">Medium fit</span>
+    </div>
+    <div class="other-desc">You describe transformations of data — no steps, no mutation. Elegant and powerful, but a mindset shift from step-by-step. Languages: Haskell, Clojure, Elm, Scala.</div>
+  </div>
+  <div class="other-card" onclick="this.classList.toggle('expanded')">
+    <div class="other-icon">🗣️</div>
+    <div class="other-header">
+      <span class="other-name">Declarative</span>
+      <span class="other-fit fit-low">Low fit (for now)</span>
+    </div>
+    <div class="other-desc">You say *what* you want, not how to get it. SQL and HTML are declarative. Hard to start here — works best once you understand the "how" underneath.</div>
+  </div>
+  <div class="other-card" onclick="this.classList.toggle('expanded')">
+    <div class="other-icon">⚡</div>
+    <div class="other-header">
+      <span class="other-name">Event-Driven</span>
+      <span class="other-fit fit-med">Medium fit</span>
+    </div>
+    <div class="other-desc">Code reacts to events (clicks, messages, timers). Used heavily in UI and game dev. Pairs well with procedural thinking. Languages: JavaScript, C#, Swift.</div>
+  </div>
+</div>
+
+<script>
+function toggleCode() {
+  const block = document.getElementById('codeBlock');
+  const btn = document.querySelector('.code-toggle');
+  block.classList.toggle('visible');
+  btn.textContent = block.classList.contains('visible') ? '🙈 Hide code' : '👁 See what this looks like in code';
+}
+</script>
+</body>
+</html>
